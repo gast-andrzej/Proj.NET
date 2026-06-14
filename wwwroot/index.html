@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wypożyczalnia Filmów</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-..." crossorigin="anonymous">
+    <style>
+      body { padding-top: 3.5rem; }
+      .card-title { font-size: 1.05rem; font-weight: 600; }
+      .badge-rented { background:#dc3545; }
+      .badge-available { background:#198754; }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Wypożyczalnia Filmów</a>
+        <div class="d-flex">
+          <button id="addBtn" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#addModal">Dodaj film</button>
+          <button id="adminBtn" class="btn btn-outline-light me-2" style="display:none">Userzy i filmy</button>
+          <button id="authBtn" class="btn btn-outline-light">Zaloguj</button>
+        </div>
+      </div>
+
+    <!-- Admin Modal -->
+    <div class="modal fade" id="adminModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Użytkownicy i ich wypożyczone filmy</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+            <div id="adminContent">Ładowanie...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </nav>
+
+    <main class="container">
+      <div id="alerts"></div>
+      <div id="filmsRow" class="row gy-3"></div>
+    </main>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Dodaj film</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addForm">
+              <div class="mb-3"><label class="form-label">Tytuł</label><input id="addTitle" class="form-control" required></div>
+              <div class="mb-3"><label class="form-label">Reżyser</label><input id="addDirector" class="form-control"></div>
+              <div class="mb-3"><label class="form-label">Rok</label><input id="addYear" type="number" class="form-control"></div>
+              <div class="text-end"><button class="btn btn-primary">Dodaj</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Modal (moved outside of nav) -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Logowanie</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+            <form id="loginForm">
+              <div class="mb-3"><label class="form-label">Nazwa użytkownika</label><input id="loginUsername" class="form-control" required></div>
+              <div class="mb-3"><label class="form-label">Hasło</label><input id="loginPassword" type="password" class="form-control" required></div>
+              <div class="text-end"><button class="btn btn-primary">Zaloguj</button></div>
+            </form>
+            <div class="mt-2"><small class="text-muted">Testowi użytkownicy: JanKolwalski / zaq1@WSX oraz BopBopowsky / zaq1@WSX</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edytuj film</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <input type="hidden" id="editId">
+              <div class="mb-3"><label class="form-label">Tytuł</label><input id="editTitle" class="form-control" required></div>
+              <div class="mb-3"><label class="form-label">Reżyser</label><input id="editDirector" class="form-control"></div>
+              <div class="mb-3"><label class="form-label">Rok</label><input id="editYear" type="number" class="form-control"></div>
+              <div class="form-check mb-3"><input id="editIsRented" class="form-check-input" type="checkbox"><label class="form-check-label">Wypożyczony</label></div>
+              <div class="text-end"><button class="btn btn-primary">Zapisz</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
+    <script>
+      const alerts = document.getElementById('alerts');
+
+      function showAlert(message, type='success'){
+        const id = 'a'+Date.now();
+        alerts.insertAdjacentHTML('beforeend', `<div id="${id}" class="alert alert-${type} alert-dismissible" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`);
+        setTimeout(()=>{const el = document.getElementById(id); if(el) el.remove();}, 4000);
+      }
+
+      async function loadFilms(){
+        try{
+          // pobierz wszystkie filmy (ustaw duży pageSize) — domyślnie API stronicuje
+          const res = await fetch('/api/films?page=1&pageSize=1000');
+          const films = await res.json();
+          renderFilms(films);
+        }catch(e){ showAlert('Błąd ładowania filmów','danger'); }
+      }
+
+      function renderFilms(films){
+        const row = document.getElementById('filmsRow');
+        row.innerHTML = '';
+        films.forEach(f=>{
+          const col = document.createElement('div'); col.className='col-12 col-sm-6 col-md-4';
+          col.innerHTML = `
+            <div class="card h-100 shadow-sm">
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title">${escapeHtml(f.title)}</h5>
+                  <span class="badge ${f.isRented ? 'badge-rented' : 'badge-available'} text-white">${f.isRented ? 'Wypożyczony' : 'Dostępny'}</span>
+                </div>
+                <p class="card-text mb-1"><small class="text-muted">${escapeHtml(f.director || '')}</small></p>
+                <p class="card-text text-muted mt-auto">Rok: ${f.year || ''}</p>
+                ${f.rentedBy ? `<p class="card-text text-muted small">Wypożyczony przez: ${escapeHtml(f.rentedBy)}</p>` : ''}
+                <div class="mt-3 d-flex gap-2">
+                  <button class="btn btn-sm btn-${f.isRented ? 'secondary' : 'success'}" data-action="rent" data-id="${f.id}">${f.isRented ? 'Zwróć' : 'Wypożycz'}</button>
+                  <button class="btn btn-sm btn-primary" data-action="edit" data-id="${f.id}">Edytuj</button>
+                  <button class="btn btn-sm btn-danger" data-action="delete" data-id="${f.id}">Usuń</button>
+                </div>
+              </div>
+            </div>
+          `;
+          row.appendChild(col);
+        });
+        // attach handlers
+        document.querySelectorAll('[data-action]').forEach(btn=>{
+          btn.onclick = async (e)=>{
+            const id = btn.getAttribute('data-id');
+            const action = btn.getAttribute('data-action');
+            if(action==='rent') await toggleRent(id);
+            if(action==='delete') await removeFilm(id);
+            if(action==='edit') openEdit(id);
+          };
+        });
+      }
+
+      function escapeHtml(text){ if(!text) return ''; return text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+      function getToken(){ return localStorage.getItem('token'); }
+
+      function getRole(){ return localStorage.getItem('role'); }
+      function getUsername(){ return localStorage.getItem('username'); }
+
+      function setToken(t, username, role){ if(t){ localStorage.setItem('token', t); localStorage.setItem('username', username); localStorage.setItem('role', role); } else { localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('role'); } updateAuthUI(); }
+
+      function showModal(id){
+        // remove any leftover backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(e=>e.remove());
+        document.body.classList.remove('modal-open');
+        const el = document.getElementById(id);
+        const m = new bootstrap.Modal(el);
+        m.show();
+        return m;
+      }
+
+      function hideModal(id){
+        const el = document.getElementById(id);
+        const inst = bootstrap.Modal.getInstance(el);
+        if(inst) inst.hide();
+        document.querySelectorAll('.modal-backdrop').forEach(e=>e.remove());
+        document.body.classList.remove('modal-open');
+      }
+
+      function updateAuthUI(){
+        const btn = document.getElementById('authBtn');
+        const addBtn = document.getElementById('addBtn');
+        const token = getToken();
+        // remove any bootstrap data attributes to avoid duplicate handlers
+        btn.removeAttribute('data-bs-toggle');
+        btn.removeAttribute('data-bs-target');
+        const role = getRole();
+        if(token){
+          btn.textContent = 'Wyloguj';
+          btn.onclick = logout;
+          addBtn.style.display = '';
+          if(role === 'Admin') document.getElementById('adminBtn').style.display = '';
+          else document.getElementById('adminBtn').style.display = 'none';
+        } else {
+          btn.textContent = 'Zaloguj';
+          btn.onclick = ()=> showModal('loginModal');
+          addBtn.style.display = 'none';
+          document.getElementById('adminBtn').style.display = 'none';
+        }
+      }
+
+      async function toggleRent(id){
+        try{
+          // fetch current state
+          const res = await fetch(`/api/films/${id}`);
+          if(!res.ok) { showAlert('Nie znaleziono filmu','warning'); return; }
+          const film = await res.json();
+          const endpoint = film.isRented ? 'return' : 'rent';
+          const headers = {};
+          const token = getToken();
+          if(token) headers['Authorization'] = 'Bearer ' + token;
+          const r = await fetch(`/api/films/${id}/${endpoint}`, { method: 'POST', headers });
+          if(r.ok) showAlert(film.isRented ? 'Film zwrócony' : 'Film wypożyczony');
+          else showAlert('proszę się zalogować','warning');
+        }catch(e){ showAlert('Błąd serwera','danger'); }
+        loadFilms();
+      }
+
+      async function removeFilm(id){ if(!confirm('Usunąć film?')) return; const r = await fetch(`/api/films/${id}`, { method: 'DELETE' }); if(r.ok) showAlert('Usunięto'); else showAlert('Nie można usunąć','warning'); loadFilms(); }
+
+      document.getElementById('addForm').onsubmit = async (e)=>{
+        e.preventDefault();
+        const title = document.getElementById('addTitle').value.trim();
+        const director = document.getElementById('addDirector').value.trim();
+        const year = parseInt(document.getElementById('addYear').value) || 0;
+        const headers = {'Content-Type':'application/json'};
+        const token = getToken(); if(token) headers['Authorization'] = 'Bearer ' + token;
+        const res = await fetch('/api/films', { method:'POST', headers, body: JSON.stringify({ title, director, year }) });
+        if(res.ok){ showAlert('Dodano film'); const modal = bootstrap.Modal.getInstance(document.getElementById('addModal')); modal.hide(); document.getElementById('addForm').reset(); }
+        else showAlert('Błąd dodawania','danger');
+        loadFilms();
+      };
+
+      async function openEdit(id){
+        const res = await fetch(`/api/films/${id}`);
+        if(!res.ok){ showAlert('Nie znaleziono filmu','warning'); return; }
+        const f = await res.json();
+        document.getElementById('editId').value = f.id;
+        document.getElementById('editTitle').value = f.title || '';
+        document.getElementById('editDirector').value = f.director || '';
+        document.getElementById('editYear').value = f.year || '';
+        document.getElementById('editIsRented').checked = !!f.isRented;
+        const em = new bootstrap.Modal(document.getElementById('editModal')); em.show();
+      }
+
+      document.getElementById('editForm').onsubmit = async (e)=>{
+        e.preventDefault();
+        const id = parseInt(document.getElementById('editId').value);
+        const title = document.getElementById('editTitle').value.trim();
+        const director = document.getElementById('editDirector').value.trim();
+        const year = parseInt(document.getElementById('editYear').value) || 0;
+        const isRented = document.getElementById('editIsRented').checked;
+        const res = await fetch(`/api/films/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, title, director, year, isRented }) });
+        if(res.status === 204){ showAlert('Zapisano'); const modal = bootstrap.Modal.getInstance(document.getElementById('editModal')); modal.hide(); }
+        else showAlert('Nie udało się zapisać','warning');
+        loadFilms();
+      };
+
+      // initial load - ensure logged out
+      setToken(null);
+      loadFilms();
+
+      // login
+      document.getElementById('loginForm').onsubmit = async (e)=>{
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const res = await fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) });
+        if(res.ok){
+          const data = await res.json();
+          setToken(data.token, data.username, data.role);
+          hideModal('loginModal');
+          showAlert('Zalogowano');
+        }
+        else showAlert('Błędne dane','danger');
+      };
+
+      async function logout(){
+        const token = getToken();
+        if(!token) return;
+        await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+        setToken(null);
+        showAlert('Wylogowano');
+      }
+
+      document.getElementById('adminBtn').onclick = async ()=>{
+        // open admin modal without backdrop so page does not dim
+        const adminEl = document.getElementById('adminModal');
+        const m = new bootstrap.Modal(adminEl, { backdrop: false });
+        m.show();
+        const token = getToken();
+        const res = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+        const content = document.getElementById('adminContent');
+        if(!res.ok){ content.innerHTML = 'Brak dostępu'; return; }
+        const data = await res.json();
+        content.innerHTML = '';
+        data.forEach(u=>{
+          const div = document.createElement('div');
+          div.className = 'mb-3';
+          div.innerHTML = `<strong>${escapeHtml(u.username)}</strong> <small class="text-muted">(${escapeHtml(u.role)})</small>` +
+            `<div>Wypożyczone: ${u.rented && u.rented.length ? u.rented.map(r=>escapeHtml(r.title)).join(', ') : 'brak'}</div>`;
+          content.appendChild(div);
+        });
+      };
+    </script>
+  </body>
+</html>

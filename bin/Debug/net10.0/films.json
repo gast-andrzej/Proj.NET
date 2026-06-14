@@ -1,0 +1,191 @@
+[
+  {
+    "Id": 1,
+    "Title": "The Matrix",
+    "Director": "Wachowskis",
+    "Year": 1999,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 2,
+    "Title": "Inception",
+    "Director": "Christopher Nolan",
+    "Year": 2010,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 3,
+    "Title": "The Godfather",
+    "Director": "Francis Ford Coppola",
+    "Year": 1972,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 4,
+    "Title": "Pulp Fiction",
+    "Director": "Quentin Tarantino",
+    "Year": 1994,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 5,
+    "Title": "The Shawshank Redemption",
+    "Director": "Frank Darabont",
+    "Year": 1994,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 6,
+    "Title": "Forrest Gump",
+    "Director": "Robert Zemeckis",
+    "Year": 1994,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 7,
+    "Title": "The Dark Knight",
+    "Director": "Christopher Nolan",
+    "Year": 2008,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 8,
+    "Title": "Fight Club",
+    "Director": "David Fincher",
+    "Year": 1999,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 9,
+    "Title": "The Lord of the Rings: The Fellowship of the Ring",
+    "Director": "Peter Jackson",
+    "Year": 2001,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 10,
+    "Title": "The Lord of the Rings: The Two Towers",
+    "Director": "Peter Jackson",
+    "Year": 2002,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 11,
+    "Title": "The Lord of the Rings: The Return of the King",
+    "Director": "Peter Jackson",
+    "Year": 2003,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 12,
+    "Title": "The Social Network",
+    "Director": "David Fincher",
+    "Year": 2010,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 13,
+    "Title": "Parasite",
+    "Director": "Bong Joon-ho",
+    "Year": 2019,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 14,
+    "Title": "Interstellar",
+    "Director": "Christopher Nolan",
+    "Year": 2014,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 15,
+    "Title": "Casablanca",
+    "Director": "Michael Curtiz",
+    "Year": 1942,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 16,
+    "Title": "Back to the Future",
+    "Director": "Robert Zemeckis",
+    "Year": 1985,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 17,
+    "Title": "Gladiator",
+    "Director": "Ridley Scott",
+    "Year": 2000,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 18,
+    "Title": "The Silence of the Lambs",
+    "Director": "Jonathan Demme",
+    "Year": 1991,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 19,
+    "Title": "Toy Story",
+    "Director": "John Lasseter",
+    "Year": 1995,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 20,
+    "Title": "Spirited Away",
+    "Director": "Hayao Miyazaki",
+    "Year": 2001,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  },
+  {
+    "Id": 21,
+    "Title": "Harry Potter",
+    "Director": "...",
+    "Year": 2000,
+    "IsRented": false,
+    "RentedBy": null,
+    "IsDeleted": false
+  }
+]
