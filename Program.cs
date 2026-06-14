@@ -5,13 +5,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IFilmRepository, InMemoryFilmRepository>();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddControllers();
+// Application handlers
+builder.Services.AddTransient<WebApplication2.Application.UseCases.RentFilmHandler>();
+builder.Services.AddTransient<WebApplication2.Application.UseCases.ReturnFilmHandler>();
 var app = builder.Build();
 
 app.UseMiddleware<WebApplication2.Middleware.ErrorHandlingMiddleware>();
 app.MapGet("/", () => Results.Content(System.IO.File.Exists("wwwroot/index.html") ? System.IO.File.ReadAllText("wwwroot/index.html") : "Film Rental API" , "text/html"));
 
 app.MapControllers();
-app.MapPost("/api/films/{id}/rent", (int id, HttpRequest req, IFilmRepository repo, UserService users) =>
+app.MapPost("/api/films/{id}/rent", (int id, HttpRequest req, WebApplication2.Application.UseCases.RentFilmHandler handler, UserService users) =>
 {
     if(!req.Headers.TryGetValue("Authorization", out var auth)) return Results.Unauthorized();
     var parts = auth.ToString().Split(' ');
@@ -19,11 +22,18 @@ app.MapPost("/api/films/{id}/rent", (int id, HttpRequest req, IFilmRepository re
     var token = parts[1];
     var username = users.ValidateToken(token);
     if(username == null) return Results.Unauthorized();
-    var current = users.CountRentedBy(username, repo);
-    if(current >= 5) return Results.BadRequest(new { error = "Maksymalnie 5 wypożyczeń na użytkownika" });
 
-    return repo.Rent(id, username) ? Results.Ok() : Results.BadRequest();
-});
+    try
+    {
+        handler.Handle(id, username);
+        return Results.Ok();
+    }
+    catch (WebApplication2.Domain.Exceptions.DomainException dex)
+    {
+        return Results.BadRequest(new { error = dex.Message });
+    }
+}
+);
 
 app.MapPost("/api/auth/login", (UserLogin login, UserService users) =>
 {
@@ -63,7 +73,7 @@ app.MapPost("/api/auth/logout", (HttpRequest req, UserService users) =>
     return Results.Ok();
 });
 
-app.MapPost("/api/films/{id}/return", (int id, HttpRequest req, IFilmRepository repo, UserService users) =>
+app.MapPost("/api/films/{id}/return", (int id, HttpRequest req, WebApplication2.Application.UseCases.ReturnFilmHandler handler, UserService users) =>
 {
     if(!req.Headers.TryGetValue("Authorization", out var auth)) return Results.Unauthorized();
     var parts = auth.ToString().Split(' ');
@@ -71,9 +81,17 @@ app.MapPost("/api/films/{id}/return", (int id, HttpRequest req, IFilmRepository 
     var token = parts[1];
     var username = users.ValidateToken(token);
     if(username == null) return Results.Unauthorized();
-    var role = users.GetRoleForUsername(username);
-    if(role == "Admin") return repo.Return(id, username) ? Results.Ok() : Results.BadRequest();
-    return repo.Return(id, username) ? Results.Ok() : Results.BadRequest();
-});
+
+    try
+    {
+        handler.Handle(id, username);
+        return Results.Ok();
+    }
+    catch (WebApplication2.Domain.Exceptions.DomainException dex)
+    {
+        return Results.BadRequest(new { error = dex.Message });
+    }
+}
+);
 
 app.Run();
